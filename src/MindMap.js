@@ -18,7 +18,7 @@ const MindMap = () => {
   const drawMindMap = (treeData) => {
     if (!treeData) return;
 
-    const width = window.innerWidth * 0.9;
+    const width = window.innerWidth * 0.95;
     const height = window.innerHeight * 0.9;
 
     d3.select("#mindmap").selectAll("*").remove();
@@ -29,15 +29,21 @@ const MindMap = () => {
       .attr("width", width)
       .attr("height", height)
       .style("background", "#fdf6e3")
-      .append("g")
-      .attr("transform", `translate(${width / 2}, ${height / 2})`);
+      .call(
+        d3.zoom().on("zoom", (event) => {
+          svgGroup.attr("transform", event.transform);
+        })
+      )
+      .append("g");
 
-    const cluster = d3.tree().size([height, width / 2]);
+    const svgGroup = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+    const cluster = d3.tree().size([height, width / 3]); // Adjust tree layout for better spacing
     const root = d3.hierarchy(treeData);
     cluster(root);
 
     // Create links with curved paths
-    svg
+    svgGroup
       .selectAll(".link")
       .data(root.links())
       .enter()
@@ -56,7 +62,7 @@ const MindMap = () => {
       .style("stroke-dasharray", "4,4"); // Hand-drawn effect
 
     // Create nodes
-    const node = svg
+    const node = svgGroup
       .selectAll(".node")
       .data(root.descendants())
       .enter()
@@ -67,7 +73,7 @@ const MindMap = () => {
         setTooltip({ visible: true, text: `Info: ${d.data.name}`, x: event.pageX, y: event.pageY });
       });
 
-    // Add rectangular boxes instead of circles
+    // Add rectangular boxes
     node
       .append("rect")
       .attr("width", 120)
@@ -81,7 +87,7 @@ const MindMap = () => {
       .attr("stroke-width", 2)
       .style("cursor", "pointer")
       .on("mouseover", function () {
-        d3.select(this).attr("fill", "#ff7043"); // Change color on hover
+        d3.select(this).attr("fill", "#ff7043"); // Hover color
       })
       .on("mouseout", function (d) {
         d3.select(this).attr("fill", d.depth === 0 ? "#b39ddb" : d.depth % 2 === 0 ? "#ffd54f" : "#81c784");
@@ -98,14 +104,11 @@ const MindMap = () => {
       .style("font-size", "14px")
       .style("font-weight", "bold");
 
-    // Tooltip display
-    d3.select("#tooltip")
-      .style("position", "absolute")
-      .style("background", "rgba(0,0,0,0.8)")
-      .style("color", "white")
-      .style("padding", "10px")
-      .style("border-radius", "5px")
-      .style("display", "none");
+    // Center the mind map initially
+    svg.transition().duration(500).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.translate(width / 2, height / 2).scale(1)
+    );
   };
 
   return (
