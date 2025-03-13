@@ -18,8 +18,8 @@ const MindMap = () => {
   const drawMindMap = (treeData) => {
     if (!treeData) return;
 
-    const width = window.innerWidth * 0.8;
-    const height = window.innerHeight * 0.8;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
     d3.select("#mindmap").selectAll("*").remove();
 
@@ -38,14 +38,14 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height, width / 2.5]); // Better spacing
+    const cluster = d3.tree().size([height - 200, width - 400]); // Adjusted to fit better
     const root = d3.hierarchy(treeData);
     cluster(root);
 
     // Adjust spacing for last-level nodes (yellow boxes)
     root.descendants().forEach((node, index) => {
       if (node.depth === 2) {
-        node.x += index * 10; // Adds space between yellow boxes
+        node.x += index * 12; // Better separation
       }
     });
 
@@ -66,7 +66,7 @@ const MindMap = () => {
           .x((d) => d.y)
           .y((d) => d.x)
       )
-      .style("stroke-dasharray", "4,4"); // Hand-drawn effect
+      .style("stroke-dasharray", "4,4");
 
     // Create nodes
     const node = svgGroup
@@ -94,7 +94,7 @@ const MindMap = () => {
       .attr("stroke-width", 2)
       .style("cursor", "pointer")
       .on("mouseover", function () {
-        d3.select(this).attr("fill", "#ff7043"); // Hover color
+        d3.select(this).attr("fill", "#ff7043");
       })
       .on("mouseout", function (d) {
         d3.select(this).attr("fill", d.depth === 0 ? "#b39ddb" : d.depth % 2 === 0 ? "#ffd54f" : "#81c784");
@@ -111,9 +111,9 @@ const MindMap = () => {
       .style("font-size", "14px")
       .style("font-weight", "bold");
 
-    // Auto-Fit to Screen on Load
+    // Auto-Fit Everything on Load
     const bounds = svgGroup.node().getBBox();
-    const scale = Math.min(width / bounds.width, height / bounds.height, 1);
+    const scale = Math.min(width / bounds.width, height / bounds.height) * 0.9;
     const translateX = (width - bounds.width * scale) / 2;
     const translateY = (height - bounds.height * scale) / 2;
 
