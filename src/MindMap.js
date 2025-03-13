@@ -38,7 +38,7 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height - 200, width / 2]);
+    const cluster = d3.tree().size([height - 200, width / 1.5]);
     const root = d3.hierarchy(treeData);
     cluster(root);
 
