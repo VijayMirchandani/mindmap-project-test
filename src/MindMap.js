@@ -18,8 +18,8 @@ const MindMap = () => {
   const drawMindMap = (treeData) => {
     if (!treeData) return;
 
-    const width = window.innerWidth * 0.95;
-    const height = window.innerHeight * 0.9;
+    const width = window.innerWidth * 0.8;
+    const height = window.innerHeight * 0.8;
 
     d3.select("#mindmap").selectAll("*").remove();
 
