@@ -38,24 +38,22 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height - 200, width / 2]); // Adjusted for left-right split
+    const cluster = d3.tree().size([height - 200, width / 2]);
     const root = d3.hierarchy(treeData);
     cluster(root);
 
-    // Split child nodes to left and right
+    // Assign left-right split for children
     root.children.forEach((node, index) => {
-      node.y = index % 2 === 0 ? -width / 4 : width / 4; // Alternate left/right
-
-      // Ensure last-level (yellow) nodes stay on the same side as their parent
+      node.y = index % 2 === 0 ? -width / 4 : width / 4;
       node.children?.forEach((child) => {
-        child.y = node.y + (node.y < 0 ? -150 : 150); // Shift left if parent is left, right if parent is right
+        child.y = node.y + (node.y < 0 ? -150 : 150);
       });
     });
 
-    // Adjust spacing for last-level nodes (yellow boxes)
+    // Spread last-level nodes for better spacing
     root.descendants().forEach((node, index) => {
       if (node.depth === 2) {
-        node.x += index * 10; // Evenly spread
+        node.x += index * 10;
       }
     });
 
@@ -95,7 +93,7 @@ const MindMap = () => {
       .append("rect")
       .attr("width", 120)
       .attr("height", 50)
-      .attr("x", (d) => (d.y < 0 ? -120 : 0)) // Shift left boxes to left
+      .attr("x", (d) => (d.y < 0 ? -120 : 0))
       .attr("y", -25)
       .attr("rx", 15)
       .attr("ry", 15)
@@ -114,7 +112,7 @@ const MindMap = () => {
     node
       .append("text")
       .attr("dy", ".35em")
-      .attr("x", (d) => (d.y < 0 ? -60 : 60)) // Align text properly for left/right sides
+      .attr("x", (d) => (d.y < 0 ? -60 : 60))
       .attr("text-anchor", "middle")
       .text((d) => d.data.name)
       .style("fill", "#333")
@@ -123,27 +121,14 @@ const MindMap = () => {
 
     // Auto-Fit Everything on Load
     const bounds = svgGroup.node().getBBox();
-    const scale = Math.min(width / bounds.width, height / bounds.height) * 0.9;
-    const translateX = (width - bounds.width * scale) / 2;
-    const translateY = (height - bounds.height * scale) / 2;
-  
-    const initialScale = Math.min(width / (bounds.width + 200), height / (bounds.height + 200)); 
-    const centerX = width / 2 - (bounds.x + bounds.width / 2) * initialScale;
-    const centerY = height / 2 - (bounds.y + bounds.height / 2) * initialScale;
+    const scaleFactor = Math.min(width / (bounds.width + 200), height / (bounds.height + 200)) * 0.9;
+    const xOffset = (width - bounds.width * scaleFactor) / 2 - bounds.x * scaleFactor;
+    const yOffset = (height - bounds.height * scaleFactor) / 2 - bounds.y * scaleFactor;
 
-    setTimeout(() => {
-      const bounds = svgGroup.node().getBBox();
-      const fullWidth = width;
-      const fullHeight = height;
-      const scaleFactor = Math.min(fullWidth / bounds.width, fullHeight / bounds.height) * 0.85;
-      const xOffset = (fullWidth - bounds.width * scaleFactor) / 2 - bounds.x * scaleFactor;
-      const yOffset = (fullHeight - bounds.height * scaleFactor) / 2 - bounds.y * scaleFactor;
-    
-      svg.transition().duration(500).call(
-        d3.zoom().transform,
-        d3.zoomIdentity.translate(xOffset, yOffset).scale(scaleFactor)
-      );
-    }, 100);
+    svg.transition().duration(500).call(
+      d3.zoom().transform,
+      d3.zoomIdentity.translate(xOffset, yOffset).scale(scaleFactor)
+    );
   };
 
   return (
