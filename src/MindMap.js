@@ -27,7 +27,8 @@ const MindMap = () => {
 
     d3.select("#mindmap").selectAll("*").remove();
 
-    const svg = d3.select("#mindmap")
+    const svg = d3
+      .select("#mindmap")
       .append("svg")
       .attr("width", width)
       .attr("height", height)
@@ -40,7 +41,7 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g").attr("transform", "translate(50,50)");
 
-    const treeLayout = d3.tree().size([width - 200, height - 200]);
+    const treeLayout = d3.tree().size([width - 300, height - 200]); // Increase spacing
     const root = d3.hierarchy(treeData);
     treeLayout(root);
 
@@ -71,20 +72,26 @@ const MindMap = () => {
 
     nodes
       .append("circle")
-      .attr("r", 10)
+      .attr("r", 12) // Bigger circle
       .attr("fill", "#0077cc")
       .attr("stroke", "black")
       .attr("stroke-width", 2);
 
     nodes
       .append("text")
-      .attr("dy", -15)
-      .attr("text-anchor", "middle")
+      .attr("dy", (d) => (d.children ? -20 : 15)) // Adjust position
+      .attr("dx", (d) => (d.children ? 0 : 10))
+      .attr("text-anchor", (d) => (d.children ? "middle" : "start"))
       .text((d) => d.data.name)
       .style("fill", "#333")
       .style("font-size", "14px")
       .style("font-weight", "bold")
-      .style("cursor", "pointer");
+      .style("cursor", "pointer")
+      .attr("transform", (d) => `rotate(${d.children ? 0 : 25})`); // Rotate leaf nodes for better spacing
+
+    nodes
+      .append("title") // Tooltip for better readability
+      .text((d) => d.data.name);
 
     nodes.on("click", function (event, d) {
       alert(`You clicked on: ${d.data.name}`);
