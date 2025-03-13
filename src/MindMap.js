@@ -127,9 +127,9 @@ const MindMap = () => {
     const translateX = (width - bounds.width * scale) / 2;
     const translateY = (height - bounds.height * scale) / 2;
 
-    svg.transition().duration(500).call(
+    svg.call(
       d3.zoom().transform,
-      d3.zoomIdentity.translate(translateX, translateY).scale(scale)
+      d3.zoomIdentity.translate(width / 2, height / 2).scale(Math.min(scale, 1))
     );
   };
 
