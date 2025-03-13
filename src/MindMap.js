@@ -130,11 +130,20 @@ const MindMap = () => {
     const initialScale = Math.min(width / (bounds.width + 200), height / (bounds.height + 200)); 
     const centerX = width / 2 - (bounds.x + bounds.width / 2) * initialScale;
     const centerY = height / 2 - (bounds.y + bounds.height / 2) * initialScale;
+
+    setTimeout(() => {
+      const bounds = svgGroup.node().getBBox();
+      const fullWidth = width;
+      const fullHeight = height;
+      const scaleFactor = Math.min(fullWidth / bounds.width, fullHeight / bounds.height) * 0.85;
+      const xOffset = (fullWidth - bounds.width * scaleFactor) / 2 - bounds.x * scaleFactor;
+      const yOffset = (fullHeight - bounds.height * scaleFactor) / 2 - bounds.y * scaleFactor;
     
-    svg.transition().duration(500).call(
-      d3.zoom().transform,
-      d3.zoomIdentity.translate(centerX, centerY).scale(initialScale)
-    );
+      svg.transition().duration(500).call(
+        d3.zoom().transform,
+        d3.zoomIdentity.translate(xOffset, yOffset).scale(scaleFactor)
+      );
+    }, 100);
   };
 
   return (
