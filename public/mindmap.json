@@ -1,0 +1,39 @@
+{
+  "name": "Otto Cycle Engine",
+  "children": [
+    {
+      "name": "Transportation",
+      "children": [
+        { "name": "Automobiles" },
+        { "name": "Motorcycles" },
+        { "name": "Marine Engines" },
+        { "name": "Aviation" }
+      ]
+    },
+    {
+      "name": "Industry",
+      "children": [
+        { "name": "Construction" },
+        { "name": "Mechanization" },
+        { "name": "Efficiency" }
+      ]
+    },
+    {
+      "name": "Society",
+      "children": [
+        { "name": "Culture" },
+        { "name": "Expression in Art" },
+        { "name": "Racing" },
+        { "name": "Motorsports" }
+      ]
+    },
+    {
+      "name": "Technology",
+      "children": [
+        { "name": "Engine Refinement" },
+        { "name": "More Emissions" },
+        { "name": "Environmental Issues" }
+      ]
+    }
+  ]
+}
