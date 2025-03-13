@@ -38,9 +38,14 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height - 200, width - 400]); // Adjusted to fit better
+    const cluster = d3.tree().size([height - 200, width / 2]); // Adjusted to split left & right
     const root = d3.hierarchy(treeData);
     cluster(root);
+
+    // Split child nodes to left and right
+    root.children.forEach((node, index) => {
+      node.y = index % 2 === 0 ? -width / 4 : width / 4; // Alternate left/right
+    });
 
     // Adjust spacing for last-level nodes (yellow boxes)
     root.descendants().forEach((node, index) => {
@@ -133,7 +138,7 @@ const MindMap = () => {
       }}
     >
       <h1 style={{ fontSize: "24px", color: "#6A0572", textShadow: "0px 0px 8px #aaa" }}>
-        🌟 Soft-Themed Interactive Mind Map
+        🌟 Balanced Left-Right Mind Map
       </h1>
 
       {tooltip.visible && (
