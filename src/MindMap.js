@@ -18,8 +18,8 @@ const MindMap = () => {
   const drawMindMap = (treeData) => {
     if (!treeData) return;
 
-    const width = window.innerWidth*0.8;
-    const height = window.innerHeigh*0.8;
+    const width = window.innerWidth * 0.8;
+    const height = window.innerHeight * 0.8; // Fixed typo
 
     d3.select("#mindmap").selectAll("*").remove();
 
@@ -42,8 +42,9 @@ const MindMap = () => {
     const root = d3.hierarchy(treeData);
     cluster(root);
 
-    root.x = height / 2;
-    root.y = width / 2;
+    // Center the entire tree at width/2 and height/2
+    const centerX = width / 2 - root.y;
+    const centerY = height / 2 - root.x;
 
     // Assign left-right split for children
     root.children.forEach((node, index) => {
@@ -86,7 +87,7 @@ const MindMap = () => {
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", (d) => `translate(${d.y - width / 2 + 100}, ${d.x - height / 2 + 50})`);
+      .attr("transform", (d) => `translate(${d.y + centerX}, ${d.x + centerY})`) // Centers the nodes
       .on("click", (event, d) => {
         setTooltip({ visible: true, text: `Info: ${d.data.name}`, x: event.pageX, y: event.pageY });
       });
