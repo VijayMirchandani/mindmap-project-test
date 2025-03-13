@@ -36,11 +36,18 @@ const MindMap = () => {
       )
       .append("g");
 
-    const svgGroup = svg.append("g").attr("transform", `translate(${width / 2}, ${height / 2})`);
+    const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height, width / 3]); // Adjust tree layout for better spacing
+    const cluster = d3.tree().size([height, width / 2.5]); // Better spacing
     const root = d3.hierarchy(treeData);
     cluster(root);
+
+    // Adjust spacing for last-level nodes (yellow boxes)
+    root.descendants().forEach((node, index) => {
+      if (node.depth === 2) {
+        node.x += index * 10; // Adds space between yellow boxes
+      }
+    });
 
     // Create links with curved paths
     svgGroup
@@ -56,7 +63,7 @@ const MindMap = () => {
         "d",
         d3
           .linkHorizontal()
-          .x((d) => d.y - width / 4)
+          .x((d) => d.y)
           .y((d) => d.x)
       )
       .style("stroke-dasharray", "4,4"); // Hand-drawn effect
@@ -68,7 +75,7 @@ const MindMap = () => {
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", (d) => `translate(${d.y - width / 4},${d.x})`)
+      .attr("transform", (d) => `translate(${d.y},${d.x})`)
       .on("click", (event, d) => {
         setTooltip({ visible: true, text: `Info: ${d.data.name}`, x: event.pageX, y: event.pageY });
       });
@@ -104,10 +111,15 @@ const MindMap = () => {
       .style("font-size", "14px")
       .style("font-weight", "bold");
 
-    // Center the mind map initially
+    // Auto-Fit to Screen on Load
+    const bounds = svgGroup.node().getBBox();
+    const scale = Math.min(width / bounds.width, height / bounds.height, 1);
+    const translateX = (width - bounds.width * scale) / 2;
+    const translateY = (height - bounds.height * scale) / 2;
+
     svg.transition().duration(500).call(
       d3.zoom().transform,
-      d3.zoomIdentity.translate(width / 2, height / 2).scale(1)
+      d3.zoomIdentity.translate(translateX, translateY).scale(scale)
     );
   };
 
