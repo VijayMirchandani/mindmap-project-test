@@ -28,7 +28,7 @@ const MindMap = () => {
       .append("svg")
       .attr("width", width)
       .attr("height", height)
-      .style("background", "linear-gradient(120deg, #1a1a2e, #16213e)")
+      .style("background", "white")
       .append("g")
       .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
@@ -36,15 +36,18 @@ const MindMap = () => {
     const root = d3.hierarchy(treeData);
     cluster(root);
 
-    // Create links
-    const link = svg
+    // Create gradient colors
+    const colors = ["#FFC107", "#FF5722", "#03A9F4", "#8BC34A", "#673AB7", "#E91E63"];
+
+    // Create links (curved)
+    svg
       .selectAll(".link")
       .data(root.links())
       .enter()
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "#ccc")
+      .attr("stroke", "#999")
       .attr("stroke-width", 2)
       .attr(
         "d",
@@ -66,40 +69,47 @@ const MindMap = () => {
         (d) => `rotate(${d.x - 90}) translate(${d.y}, 0)`
       );
 
-    // Add circles with glow effect
+    // Add colorful bubbles
     node
       .append("circle")
-      .attr("r", 12)
-      .attr("fill", (d) => (d.depth === 0 ? "#ffcc00" : d.depth === 1 ? "#ff5733" : "#00ccff"))
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 2)
+      .attr("r", (d) => (d.depth === 0 ? 40 : 35)) // Bigger for center
+      .attr("fill", (d) => (d.depth === 0 ? "#444" : colors[d.depth % colors.length]))
+      .attr("stroke", "white")
+      .attr("stroke-width", 3)
       .style("filter", "url(#glow)");
 
-    // Add text labels with rotation
+    // Add text labels inside bubbles
     node
       .append("text")
       .attr("dy", ".31em")
-      .attr("x", (d) => (d.x < 180 ? 15 : -15))
-      .attr("text-anchor", (d) => (d.x < 180 ? "start" : "end"))
-      .attr("transform", (d) => (d.x < 180 ? "" : "rotate(180)"))
+      .attr("x", 0)
+      .attr("text-anchor", "middle")
       .text((d) => d.data.name)
-      .style("fill", "#fff")
+      .style("fill", "white")
       .style("font-size", "14px")
       .style("font-weight", "bold");
 
-    // Add hover tooltip bubbles
+    // Add hover glow effect
     node
-      .append("title")
-      .text((d) => `Info: ${d.data.name}`);
+      .on("mouseover", function () {
+        d3.select(this).select("circle").attr("filter", "url(#glow-hover)");
+      })
+      .on("mouseout", function () {
+        d3.select(this).select("circle").attr("filter", "url(#glow)");
+      });
 
-    // Add glowing effect
+    // Define glowing effects
     const defs = svg.append("defs");
-    const filter = defs.append("filter").attr("id", "glow");
-    filter.append("feGaussianBlur").attr("stdDeviation", "2.5").attr("result", "coloredBlur");
-    filter.append("feMerge")
-      .append("feMergeNode").attr("in", "coloredBlur");
-    filter.append("feMerge")
-      .append("feMergeNode").attr("in", "SourceGraphic");
+
+    const glow = defs.append("filter").attr("id", "glow");
+    glow.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
+    glow.append("feMerge").append("feMergeNode").attr("in", "coloredBlur");
+    glow.append("feMerge").append("feMergeNode").attr("in", "SourceGraphic");
+
+    const glowHover = defs.append("filter").attr("id", "glow-hover");
+    glowHover.append("feGaussianBlur").attr("stdDeviation", "6").attr("result", "coloredBlur");
+    glowHover.append("feMerge").append("feMergeNode").attr("in", "coloredBlur");
+    glowHover.append("feMerge").append("feMergeNode").attr("in", "SourceGraphic");
   };
 
   return (
@@ -108,12 +118,13 @@ const MindMap = () => {
       style={{
         textAlign: "center",
         padding: "20px",
-        color: "#fff",
+        background: "#f8f9fa",
         fontFamily: "Arial, sans-serif",
-        fontSize: "20px",
       }}
     >
-      <h1 style={{ textShadow: "0px 0px 10px #fff" }}>🚀 Interactive Mind Map</h1>
+      <h1 style={{ fontSize: "24px", color: "#444", textShadow: "0px 0px 8px #aaa" }}>
+        🧠 Beautiful Interactive Mind Map
+      </h1>
     </div>
   );
 };
