@@ -126,10 +126,14 @@ const MindMap = () => {
     const scale = Math.min(width / bounds.width, height / bounds.height) * 0.9;
     const translateX = (width - bounds.width * scale) / 2;
     const translateY = (height - bounds.height * scale) / 2;
-
-    svg.call(
+  
+    const initialScale = Math.min(width / (bounds.width + 200), height / (bounds.height + 200)); 
+    const centerX = width / 2 - (bounds.x + bounds.width / 2) * initialScale;
+    const centerY = height / 2 - (bounds.y + bounds.height / 2) * initialScale;
+    
+    svg.transition().duration(500).call(
       d3.zoom().transform,
-      d3.zoomIdentity.translate(width / 2, height / 2).scale(Math.min(scale, 1))
+      d3.zoomIdentity.translate(centerX, centerY).scale(initialScale)
     );
   };
 
