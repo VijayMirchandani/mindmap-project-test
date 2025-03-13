@@ -5,7 +5,7 @@ const MindMap = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch(process.env.PUBLIC_URL + "/mindmap.json")  // Fix path for Vercel
+    fetch("/mindmap.json")  // Ensure the correct path
       .then((response) => {
         if (!response.ok) {
           throw new Error("Failed to load mindmap.json");
