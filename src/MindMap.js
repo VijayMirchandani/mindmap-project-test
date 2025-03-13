@@ -38,19 +38,24 @@ const MindMap = () => {
 
     const svgGroup = svg.append("g");
 
-    const cluster = d3.tree().size([height - 200, width / 2]); // Adjusted to split left & right
+    const cluster = d3.tree().size([height - 200, width / 2]); // Adjusted for left-right split
     const root = d3.hierarchy(treeData);
     cluster(root);
 
     // Split child nodes to left and right
     root.children.forEach((node, index) => {
       node.y = index % 2 === 0 ? -width / 4 : width / 4; // Alternate left/right
+
+      // Ensure last-level (yellow) nodes stay on the same side as their parent
+      node.children?.forEach((child) => {
+        child.y = node.y + (node.y < 0 ? -150 : 150); // Shift left if parent is left, right if parent is right
+      });
     });
 
     // Adjust spacing for last-level nodes (yellow boxes)
     root.descendants().forEach((node, index) => {
       if (node.depth === 2) {
-        node.x += index * 12; // Better separation
+        node.x += index * 10; // Evenly spread
       }
     });
 
@@ -90,7 +95,7 @@ const MindMap = () => {
       .append("rect")
       .attr("width", 120)
       .attr("height", 50)
-      .attr("x", -60)
+      .attr("x", (d) => (d.y < 0 ? -120 : 0)) // Shift left boxes to left
       .attr("y", -25)
       .attr("rx", 15)
       .attr("ry", 15)
@@ -109,7 +114,7 @@ const MindMap = () => {
     node
       .append("text")
       .attr("dy", ".35em")
-      .attr("x", 0)
+      .attr("x", (d) => (d.y < 0 ? -60 : 60)) // Align text properly for left/right sides
       .attr("text-anchor", "middle")
       .text((d) => d.data.name)
       .style("fill", "#333")
@@ -138,7 +143,7 @@ const MindMap = () => {
       }}
     >
       <h1 style={{ fontSize: "24px", color: "#6A0572", textShadow: "0px 0px 8px #aaa" }}>
-        🌟 Balanced Left-Right Mind Map
+        🌟 Perfectly Aligned Mind Map
       </h1>
 
       {tooltip.visible && (
