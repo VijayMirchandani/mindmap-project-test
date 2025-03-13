@@ -5,17 +5,25 @@ const MindMap = () => {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch("/mindmap.json")
-      .then((response) => response.json())
+    fetch("/mindmap.json")  // This ensures it's loading correctly
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to load mindmap.json");
+        }
+        return response.json();
+      })
       .then((jsonData) => {
         setData(jsonData);
         drawMindMap(jsonData);
-      });
+      })
+      .catch((error) => console.error("Error loading mindmap.json:", error));
   }, []);
 
   const drawMindMap = (treeData) => {
+    if (!treeData) return;
+
     const width = 800, height = 600;
-    d3.select("#mindmap").selectAll("*").remove(); // Clear previous render
+    d3.select("#mindmap").selectAll("*").remove();
 
     const svg = d3.select("#mindmap")
       .append("svg")
@@ -28,7 +36,6 @@ const MindMap = () => {
     const root = d3.hierarchy(treeData);
     treeLayout(root);
 
-    // Links
     svg.selectAll("line")
       .data(root.links())
       .enter()
@@ -39,7 +46,6 @@ const MindMap = () => {
       .attr("y2", d => d.target.y)
       .attr("stroke", "#555");
 
-    // Nodes
     const nodes = svg.selectAll("circle")
       .data(root.descendants())
       .enter()
