@@ -3,6 +3,7 @@ import * as d3 from "d3";
 
 const MindMap = () => {
   const [data, setData] = useState(null);
+  const [tooltip, setTooltip] = useState({ visible: false, text: "", x: 0, y: 0 });
 
   useEffect(() => {
     fetch("/mindmap.json")
@@ -17,9 +18,8 @@ const MindMap = () => {
   const drawMindMap = (treeData) => {
     if (!treeData) return;
 
-    const width = window.innerWidth * 0.95;
+    const width = window.innerWidth * 0.9;
     const height = window.innerHeight * 0.9;
-    const radius = Math.min(width, height) / 2 - 100;
 
     d3.select("#mindmap").selectAll("*").remove();
 
@@ -28,18 +28,15 @@ const MindMap = () => {
       .append("svg")
       .attr("width", width)
       .attr("height", height)
-      .style("background", "white")
+      .style("background", "#fdf6e3")
       .append("g")
       .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-    const cluster = d3.cluster().size([360, radius]);
+    const cluster = d3.tree().size([height, width / 2]);
     const root = d3.hierarchy(treeData);
     cluster(root);
 
-    // Create gradient colors
-    const colors = ["#FFC107", "#FF5722", "#03A9F4", "#8BC34A", "#673AB7", "#E91E63"];
-
-    // Create links (curved)
+    // Create links with curved paths
     svg
       .selectAll(".link")
       .data(root.links())
@@ -47,15 +44,16 @@ const MindMap = () => {
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "#999")
+      .attr("stroke", "#555")
       .attr("stroke-width", 2)
       .attr(
         "d",
         d3
-          .linkRadial()
-          .angle((d) => (d.x / 180) * Math.PI)
-          .radius((d) => d.y)
-      );
+          .linkHorizontal()
+          .x((d) => d.y - width / 4)
+          .y((d) => d.x)
+      )
+      .style("stroke-dasharray", "4,4"); // Hand-drawn effect
 
     // Create nodes
     const node = svg
@@ -64,52 +62,50 @@ const MindMap = () => {
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr(
-        "transform",
-        (d) => `rotate(${d.x - 90}) translate(${d.y}, 0)`
-      );
+      .attr("transform", (d) => `translate(${d.y - width / 4},${d.x})`)
+      .on("click", (event, d) => {
+        setTooltip({ visible: true, text: `Info: ${d.data.name}`, x: event.pageX, y: event.pageY });
+      });
 
-    // Add colorful bubbles
+    // Add rectangular boxes instead of circles
     node
-      .append("circle")
-      .attr("r", (d) => (d.depth === 0 ? 40 : 35)) // Bigger for center
-      .attr("fill", (d) => (d.depth === 0 ? "#444" : colors[d.depth % colors.length]))
-      .attr("stroke", "white")
-      .attr("stroke-width", 3)
-      .style("filter", "url(#glow)");
+      .append("rect")
+      .attr("width", 120)
+      .attr("height", 50)
+      .attr("x", -60)
+      .attr("y", -25)
+      .attr("rx", 15)
+      .attr("ry", 15)
+      .attr("fill", (d) => (d.depth === 0 ? "#b39ddb" : d.depth % 2 === 0 ? "#ffd54f" : "#81c784"))
+      .attr("stroke", "#555")
+      .attr("stroke-width", 2)
+      .style("cursor", "pointer")
+      .on("mouseover", function () {
+        d3.select(this).attr("fill", "#ff7043"); // Change color on hover
+      })
+      .on("mouseout", function (d) {
+        d3.select(this).attr("fill", d.depth === 0 ? "#b39ddb" : d.depth % 2 === 0 ? "#ffd54f" : "#81c784");
+      });
 
-    // Add text labels inside bubbles
+    // Add text labels inside boxes
     node
       .append("text")
-      .attr("dy", ".31em")
+      .attr("dy", ".35em")
       .attr("x", 0)
       .attr("text-anchor", "middle")
       .text((d) => d.data.name)
-      .style("fill", "white")
+      .style("fill", "#333")
       .style("font-size", "14px")
       .style("font-weight", "bold");
 
-    // Add hover glow effect
-    node
-      .on("mouseover", function () {
-        d3.select(this).select("circle").attr("filter", "url(#glow-hover)");
-      })
-      .on("mouseout", function () {
-        d3.select(this).select("circle").attr("filter", "url(#glow)");
-      });
-
-    // Define glowing effects
-    const defs = svg.append("defs");
-
-    const glow = defs.append("filter").attr("id", "glow");
-    glow.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "coloredBlur");
-    glow.append("feMerge").append("feMergeNode").attr("in", "coloredBlur");
-    glow.append("feMerge").append("feMergeNode").attr("in", "SourceGraphic");
-
-    const glowHover = defs.append("filter").attr("id", "glow-hover");
-    glowHover.append("feGaussianBlur").attr("stdDeviation", "6").attr("result", "coloredBlur");
-    glowHover.append("feMerge").append("feMergeNode").attr("in", "coloredBlur");
-    glowHover.append("feMerge").append("feMergeNode").attr("in", "SourceGraphic");
+    // Tooltip display
+    d3.select("#tooltip")
+      .style("position", "absolute")
+      .style("background", "rgba(0,0,0,0.8)")
+      .style("color", "white")
+      .style("padding", "10px")
+      .style("border-radius", "5px")
+      .style("display", "none");
   };
 
   return (
@@ -118,13 +114,30 @@ const MindMap = () => {
       style={{
         textAlign: "center",
         padding: "20px",
-        background: "#f8f9fa",
-        fontFamily: "Arial, sans-serif",
+        fontFamily: "'Comic Sans MS', cursive, sans-serif",
       }}
     >
-      <h1 style={{ fontSize: "24px", color: "#444", textShadow: "0px 0px 8px #aaa" }}>
-        🧠 Beautiful Interactive Mind Map
+      <h1 style={{ fontSize: "24px", color: "#6A0572", textShadow: "0px 0px 8px #aaa" }}>
+        🌟 Soft-Themed Interactive Mind Map
       </h1>
+
+      {tooltip.visible && (
+        <div
+          style={{
+            position: "absolute",
+            top: tooltip.y,
+            left: tooltip.x,
+            background: "rgba(0,0,0,0.8)",
+            color: "white",
+            padding: "10px",
+            borderRadius: "5px",
+            zIndex: 10,
+          }}
+          onClick={() => setTooltip({ visible: false, text: "", x: 0, y: 0 })}
+        >
+          {tooltip.text}
+        </div>
+      )}
     </div>
   );
 };
