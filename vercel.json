@@ -1,7 +1,0 @@
-{
-  "version": 2,
-  "routes": [
-    { "src": "/mindmap.json", "dest": "/public/mindmap.json" },
-    { "src": "/(.*)", "dest": "/index.html" }
-  ]
-}
