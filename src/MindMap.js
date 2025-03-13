@@ -44,7 +44,7 @@ const MindMap = () => {
 
     // Assign left-right split for children
     root.children.forEach((node, index) => {
-      node.y = index % 2 === 0 ? -width / 4 : width / 4;
+      node.y = index % 2 === 0 ? -width / 8 : width / 8;
       node.children?.forEach((child) => {
         child.y = node.y + (node.y < 0 ? -150 : 150);
       });
