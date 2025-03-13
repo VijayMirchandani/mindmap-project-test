@@ -6,12 +6,7 @@ const MindMap = () => {
 
   useEffect(() => {
     fetch("/mindmap.json")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to load mindmap.json");
-        }
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((jsonData) => {
         setData(jsonData);
         drawMindMap(jsonData);
@@ -24,6 +19,7 @@ const MindMap = () => {
 
     const width = window.innerWidth * 0.95;
     const height = window.innerHeight * 0.9;
+    const radius = Math.min(width, height) / 2 - 100;
 
     d3.select("#mindmap").selectAll("*").remove();
 
@@ -32,87 +28,94 @@ const MindMap = () => {
       .append("svg")
       .attr("width", width)
       .attr("height", height)
-      .call(
-        d3.zoom().on("zoom", (event) => {
-          svgGroup.attr("transform", event.transform);
-        })
-      )
-      .append("g");
+      .style("background", "linear-gradient(120deg, #1a1a2e, #16213e)")
+      .append("g")
+      .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
-    const svgGroup = svg.append("g").attr("transform", "translate(50,50)");
-
-    const treeLayout = d3.tree().size([width - 300, height - 200]);
+    const cluster = d3.cluster().size([360, radius]);
     const root = d3.hierarchy(treeData);
-
-    treeLayout(root);
+    cluster(root);
 
     // Create links
-    const link = svgGroup
+    const link = svg
       .selectAll(".link")
       .data(root.links())
       .enter()
       .append("path")
       .attr("class", "link")
       .attr("fill", "none")
-      .attr("stroke", "#999")
+      .attr("stroke", "#ccc")
       .attr("stroke-width", 2)
       .attr(
         "d",
         d3
-          .linkVertical()
-          .x((d) => d.x)
-          .y((d) => d.y)
+          .linkRadial()
+          .angle((d) => (d.x / 180) * Math.PI)
+          .radius((d) => d.y)
       );
 
     // Create nodes
-    const node = svgGroup
+    const node = svg
       .selectAll(".node")
       .data(root.descendants())
       .enter()
       .append("g")
       .attr("class", "node")
-      .attr("transform", (d) => `translate(${d.x},${d.y})`)
-      .on("click", (event, d) => {
-        d.children = d.children ? null : d._children;
-        drawMindMap(treeData); // Refresh map on collapse/expand
-      });
+      .attr(
+        "transform",
+        (d) => `rotate(${d.x - 90}) translate(${d.y}, 0)`
+      );
 
-    // Add circles to nodes with gradient effect
+    // Add circles with glow effect
     node
       .append("circle")
-      .attr("r", 14)
-      .attr("fill", (d) => (d.children ? "#0077cc" : "#ff5733"))
-      .attr("stroke", "black")
+      .attr("r", 12)
+      .attr("fill", (d) => (d.depth === 0 ? "#ffcc00" : d.depth === 1 ? "#ff5733" : "#00ccff"))
+      .attr("stroke", "#fff")
       .attr("stroke-width", 2)
-      .attr("filter", "url(#drop-shadow)");
+      .style("filter", "url(#glow)");
 
-    // Add text labels
+    // Add text labels with rotation
     node
       .append("text")
-      .attr("dy", (d) => (d.children ? -20 : 15))
-      .attr("dx", (d) => (d.children ? 0 : 10))
-      .attr("text-anchor", "middle")
+      .attr("dy", ".31em")
+      .attr("x", (d) => (d.x < 180 ? 15 : -15))
+      .attr("text-anchor", (d) => (d.x < 180 ? "start" : "end"))
+      .attr("transform", (d) => (d.x < 180 ? "" : "rotate(180)"))
       .text((d) => d.data.name)
-      .style("fill", "#333")
+      .style("fill", "#fff")
       .style("font-size", "14px")
-      .style("font-weight", "bold")
-      .attr("transform", (d) => `rotate(${d.children ? 0 : 20})`);
+      .style("font-weight", "bold");
 
-    // Add tooltip
-    node.append("title").text((d) => `Click to expand/collapse: ${d.data.name}`);
+    // Add hover tooltip bubbles
+    node
+      .append("title")
+      .text((d) => `Info: ${d.data.name}`);
 
-    // Add drop shadow effect
-    svg
-      .append("defs")
-      .append("filter")
-      .attr("id", "drop-shadow")
-      .append("feDropShadow")
-      .attr("dx", 2)
-      .attr("dy", 2)
-      .attr("stdDeviation", 2);
+    // Add glowing effect
+    const defs = svg.append("defs");
+    const filter = defs.append("filter").attr("id", "glow");
+    filter.append("feGaussianBlur").attr("stdDeviation", "2.5").attr("result", "coloredBlur");
+    filter.append("feMerge")
+      .append("feMergeNode").attr("in", "coloredBlur");
+    filter.append("feMerge")
+      .append("feMergeNode").attr("in", "SourceGraphic");
   };
 
-  return <div id="mindmap" style={{ textAlign: "center", padding: "20px" }}></div>;
+  return (
+    <div
+      id="mindmap"
+      style={{
+        textAlign: "center",
+        padding: "20px",
+        color: "#fff",
+        fontFamily: "Arial, sans-serif",
+        fontSize: "20px",
+      }}
+    >
+      <h1 style={{ textShadow: "0px 0px 10px #fff" }}>🚀 Interactive Mind Map</h1>
+    </div>
+  );
 };
 
 export default MindMap;
